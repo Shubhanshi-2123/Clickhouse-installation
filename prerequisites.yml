@@ -1,0 +1,30 @@
+---
+- name: Install prerequisite packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+
+- name: Download ClickHouse GPG key and store in keyring
+  ansible.builtin.shell: |
+    curl -fsSL 'https://packages.clickhouse.com/deb/public.gpg' | \
+    gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+  args:
+    creates: /usr/share/keyrings/clickhouse-keyring.gpg
+
+- name: Get system architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: arch_result
+
+- name: Add ClickHouse repo to apt sources
+  copy:
+    content: "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg arch={{ arch_result.stdout }}] https://packages.clickhouse.com/deb stable main\n"
+    dest: /etc/apt/sources.list.d/clickhouse.list
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
