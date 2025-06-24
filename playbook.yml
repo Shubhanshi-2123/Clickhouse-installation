@@ -1,0 +1,5 @@
+- name: Setup ClickHouse
+  hosts: webserver
+  become: true
+  roles:
+    - clickhouse_installation
