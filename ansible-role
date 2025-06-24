@@ -1,0 +1,67 @@
+---
+- name: Install prerequisite packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+
+- name: Download ClickHouse GPG key and store in keyring
+  ansible.builtin.shell: |
+    curl -fsSL 'https://packages.clickhouse.com/deb/public.gpg' | \
+    gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+  args:
+    creates: /usr/share/keyrings/clickhouse-keyring.gpg
+
+- name: Get system architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: arch_result
+
+- name: Add ClickHouse repo to apt sources
+  copy:
+    content: "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg arch={{ arch_result.stdout }}] https://packages.clickhouse.com/deb stable main\n"
+    dest: /etc/apt/sources.list.d/clickhouse.list
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install ClickHouse server and client
+  apt:
+    name:
+      - clickhouse-server
+      - clickhouse-client
+    state: present
+
+- name: Reload systemd daemon to pick up ClickHouse unit files
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Check if ClickHouse systemd unit file exists
+  stat:
+    path: /lib/systemd/system/clickhouse-server.service
+  register: ch_unit
+
+- name: Debug unit file status
+  debug:
+    var: ch_unit
+
+- name: Start ClickHouse server
+  service:
+    name: clickhouse-server
+    state: started
+    enabled: true
+
+- name: Install ClickHouse Keeper
+  apt:
+    name: clickhouse-keeper
+    state: present
+
+- name: Enable ClickHouse Keeper
+  systemd:
+    name: clickhouse-keeper
+    enabled: true
+    state: started
