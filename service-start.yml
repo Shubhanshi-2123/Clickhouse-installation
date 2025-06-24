@@ -1,0 +1,19 @@
+---
+- name: Reload systemd daemon to pick up ClickHouse unit files
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Check if ClickHouse systemd unit file exists
+  stat:
+    path: /lib/systemd/system/clickhouse-server.service
+  register: ch_unit
+
+- name: Debug unit file status
+  debug:
+    var: ch_unit
+
+- name: Start ClickHouse server
+  service:
+    name: clickhouse-server
+    state: started
+    enabled: true
