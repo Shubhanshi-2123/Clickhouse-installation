@@ -1,0 +1,26 @@
+---
+- name: Install prerequisite packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Get system architecture
+  command: dpkg --print-architecture
+  register: architecture
+  changed_when: false
+
+- name: Add ClickHouse APT repository WITHOUT key verification
+  copy:
+    dest: /etc/apt/sources.list.d/clickhouse.list
+    content: |
+      deb [trusted=yes arch={{ architecture.stdout }}] https://packages.clickhouse.com/deb stable main
+    mode: '0644'
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+

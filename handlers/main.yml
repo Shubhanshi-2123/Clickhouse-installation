@@ -1,0 +1,12 @@
+---
+- name: restart clickhouse
+  systemd:
+    name: clickhouse-server
+    state: restarted
+    enabled: yes
+- name: restart clickhouse-keeper
+  systemd:
+    name: clickhouse-keeper
+    state: restarted
+    enabled: yes
+

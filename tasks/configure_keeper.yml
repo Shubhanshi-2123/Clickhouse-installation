@@ -1,0 +1,12 @@
+---
+- name: Install ClickHouse Keeper
+  apt:
+    name: clickhouse-keeper
+    state: present
+  notify: restart clickhouse-keeper
+
+- name: Enable ClickHouse Keeper
+  systemd:
+    name: clickhouse-keeper
+    enabled: true
+    state: started

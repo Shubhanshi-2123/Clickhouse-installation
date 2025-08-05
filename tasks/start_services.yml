@@ -1,0 +1,22 @@
+---
+- name: Start and enable ClickHouse server
+  systemd:
+    name: clickhouse-server
+    enabled: yes
+    state: started
+
+- name: Enable and start ClickHouse Keeper service
+  systemd:
+    name: clickhouse-keeper
+    enabled: yes
+    state: started
+
+- name: Check ClickHouse Keeper status
+  command: systemctl status clickhouse-keeper
+  register: keeper_status
+  changed_when: false
+
+- name: Show ClickHouse Keeper status
+  debug:
+    var: keeper_status.stdout_lines
+
